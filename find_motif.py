@@ -92,7 +92,7 @@ def write(input_path, output_path, cens_sr=10, mp_window=50):
 
 def main():
     rel_root = Path("data/input")
-    src = rel_root / "train_short_audio/acafly"
+    src = rel_root / "train_short_audio/osprey"
     dst = Path("data/motif")
     files = list(src.glob("**/*.ogg"))
     for path in tqdm.tqdm(files):
@@ -100,7 +100,7 @@ def main():
         try:
             write(path, dst / rel_dir, cens_sr=10, mp_window=50)
         except:
-            print(f"issue processing {path}...")
+            print(f"issue processing {path}")
             continue
 
 

@@ -20,4 +20,15 @@
 	export let species;
 </script>
 
-{species}
+<svelte:head>
+	<title>training motifs</title>
+</svelte:head>
+
+<h1>training motifs</h1>
+<a href="/">back to the index</a>
+
+<ul>
+	{#each species as sp}
+		<li><a href="/train/species/{sp}">{sp}</a></li>
+	{/each}
+</ul>

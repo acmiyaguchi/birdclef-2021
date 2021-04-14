@@ -146,6 +146,7 @@ numpy==1.20.2
     #   librosa
     #   matplotlib
     #   numba
+    #   pandas
     #   resampy
     #   scikit-learn
     #   scipy
@@ -156,6 +157,8 @@ packaging==20.9
     #   jupyterlab
     #   jupyterlab-server
     #   pooch
+pandas==1.2.4
+    # via -r requirements.in
 pandocfilters==1.4.3
     # via nbconvert
 parso==0.8.2
@@ -189,8 +192,11 @@ python-dateutil==2.8.1
     # via
     #   jupyter-client
     #   matplotlib
+    #   pandas
 pytz==2021.1
-    # via babel
+    # via
+    #   babel
+    #   pandas
 pywin32==300
     # via
     #   jupyter-core

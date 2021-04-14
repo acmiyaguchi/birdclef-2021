@@ -1,4 +1,5 @@
 import json
+import shutil
 import tempfile
 from ast import literal_eval
 from pathlib import Path
@@ -101,6 +102,7 @@ def main():
             write(path, dst / rel_dir, cens_sr=10, mp_window=50)
         except:
             print(f"issue processing {path}")
+            shutil.rmtree(dst / rel_dir)
             continue
 
 

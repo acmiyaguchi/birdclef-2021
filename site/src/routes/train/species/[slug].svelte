@@ -73,10 +73,10 @@
     { name: "date" },
     { name: "rating" },
     {
-      name: "secondary_labels"
+      name: "type"
     },
     {
-      name: "type"
+      name: "secondary_labels"
     }
   ];
 

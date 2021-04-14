@@ -59,6 +59,7 @@
 		/>`,
       html: true
     },
+    // TODO: put in a component that grabs information from the metadata
     {
       name: "source audio",
       format: (row) => {
@@ -97,6 +98,6 @@
 
 <a href="/train">back to species</a>
 
-{#if metadata.length}
-  <Table data={metadata} {columns} paginationSize={10} />
+{#if data.length}
+  <Table {data} {columns} paginationSize={10} />
 {/if}

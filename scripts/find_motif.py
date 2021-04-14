@@ -11,13 +11,15 @@ import numpy as np
 import soundfile as sf
 import tqdm
 
+ROOT = Path(__file__).parent.parent
+
 
 def cens_per_sec(sample_rate, target):
     """Ensure this value is a multiple of 2**6"""
     return (sample_rate // (target * (2 ** 6))) * (2 ** 6)
 
 
-def get_motif_index(data, window_size, cwd="."):
+def get_motif_index(data, window_size, cwd=ROOT):
     with tempfile.NamedTemporaryFile(delete=False) as fp:
         np.save(fp, data)
         res = run(
@@ -92,7 +94,7 @@ def write(input_path, output_path, cens_sr=10, mp_window=50):
 
 
 def main():
-    rel_root = Path("data/input")
+    rel_root = ROOT / "data/input"
     src = rel_root / "train_short_audio/osprey"
     dst = Path("data/motif")
     files = list(src.glob("**/*.ogg"))

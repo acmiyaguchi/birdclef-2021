@@ -19,10 +19,11 @@
 
 <script>
   import { onMount } from "svelte";
+  import Table from "../../../lib/Table.svelte";
   export let slug;
   export let examples;
   export let info = {};
-  export let metadata = [];
+  export let metadata;
 
   onMount(async () => {
     let resp;
@@ -31,6 +32,34 @@
     resp = await fetch(`/data/metadata/${slug}/metadata.json`);
     metadata = await resp.json();
   });
+
+  $: columns = [
+    {
+      name: "name"
+    },
+    {
+      name: "motif",
+      format: (row) => {
+        return `<audio
+            preload="none"
+            controls
+            src="/data/motif/train_short_audio/${slug}/${row.name}/motif.0.ogg"
+          />`;
+      },
+      html: true
+    },
+    {
+      name: "motif pair",
+      format: (row) => {
+        return `<audio
+            preload="none"
+            controls
+            src="/data/motif/train_short_audio/${slug}/${row.name}/motif.1.ogg"
+          />`;
+      },
+      html: true
+    }
+  ];
 </script>
 
 <svelte:head>
@@ -47,44 +76,6 @@
 
 <a href="/train">back to species</a>
 
-<table>
-  <thead>
-    <tr>
-      <th>name</th>
-      <th>motif</th>
-      <th>motif pair</th>
-    </tr>
-  </thead>
-  <tbody>
-    {#each examples as example}
-      <tr>
-        <td>{example}</td>
-        <td>
-          <audio
-            preload="none"
-            controls
-            src="/data/motif/train_short_audio/{slug}/{example}/motif.0.ogg"
-          /></td
-        >
-        <td>
-          <audio
-            preload="none"
-            controls
-            src="/data/motif/train_short_audio/{slug}/{example}/motif.1.ogg"
-          /></td
-        >
-      </tr>
-    {/each}
-  </tbody>
-</table>
-
-<style>
-  table,
-  th,
-  td {
-    border: 1px solid black;
-  }
-  table {
-    border-collapse: collapse;
-  }
-</style>
+{#if metadata}
+  <Table data={metadata} {columns} paginationSize={10} />
+{/if}

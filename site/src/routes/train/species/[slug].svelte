@@ -23,7 +23,7 @@
   export let slug;
   export let examples;
   export let info = {};
-  export let metadata;
+  export let metadata = [];
 
   onMount(async () => {
     let resp;
@@ -35,31 +35,52 @@
 
   $: columns = [
     {
-      name: "name"
+      name: "name",
+      format: (row) => `<a href=${row.url} target="_blank">${row.name}</a>`,
+      html: true
     },
     {
       name: "motif",
-      format: (row) => {
-        return `<audio
-            preload="none"
-            controls
-            src="/data/motif/train_short_audio/${slug}/${row.name}/motif.0.ogg"
-          />`;
-      },
+      format: (row) => `
+	  	<audio
+			preload="none"
+			controls
+			src="/data/motif/train_short_audio/${slug}/${row.name}/motif.0.ogg"
+        />`,
       html: true
     },
     {
       name: "motif pair",
+      format: (row) => `
+		<audio
+			preload="none"
+			controls
+			src="/data/motif/train_short_audio/${slug}/${row.name}/motif.1.ogg"
+		/>`,
+      html: true
+    },
+    {
+      name: "source audio",
       format: (row) => {
-        return `<audio
+        return `<details><audio
             preload="none"
             controls
-            src="/data/motif/train_short_audio/${slug}/${row.name}/motif.1.ogg"
-          />`;
+            src="/data/input/train_short_audio/${slug}/${row.name}.ogg"
+          /></details>`;
       },
       html: true
+    },
+    { name: "date" },
+    { name: "rating" },
+    {
+      name: "secondary_labels"
+    },
+    {
+      name: "type"
     }
   ];
+
+  $: data = metadata.filter((row) => examples.includes(row.name));
 </script>
 
 <svelte:head>
@@ -76,6 +97,6 @@
 
 <a href="/train">back to species</a>
 
-{#if metadata}
+{#if metadata.length}
   <Table data={metadata} {columns} paginationSize={10} />
 {/if}

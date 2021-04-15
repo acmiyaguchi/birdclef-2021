@@ -1,6 +1,10 @@
 {
   "name": "birdclef-2021",
   "version": "0.2.0",
+  "repository": {
+    "url": "https://github.com/acmiyaguchi/birdclef-2021"
+  },
+  "license": "MIT",
   "scripts": {
     "dev": "svelte-kit dev",
     "build": "svelte-kit build",

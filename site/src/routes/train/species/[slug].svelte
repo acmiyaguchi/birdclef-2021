@@ -20,17 +20,14 @@
 <script>
   import { onMount } from "svelte";
   import Table from "./Table.svelte";
-  import localforage from "localforage";
 
   export let slug;
   export let examples = [];
 
-  const key = `train.motif.${slug}.v1`;
   let info = {};
   let metadata = [];
-  let labels;
 
-  $: labels && localforage.setItem(key, labels);
+  $: data = metadata.filter((row) => examples.includes(row.name));
 
   onMount(async () => {
     let resp;
@@ -38,13 +35,7 @@
     info = await resp.json();
     resp = await fetch(`/data/metadata/${slug}/metadata.json`);
     metadata = await resp.json();
-
-    labels =
-      (await localforage.getItem(key)) ||
-      Object.fromEntries(examples.map((name) => [name, { is_valid: True }]));
   });
-
-  $: data = metadata.filter((row) => examples.includes(row.name));
 </script>
 
 <svelte:head>

@@ -19,11 +19,18 @@
 
 <script>
   import { onMount } from "svelte";
-  import Table from "../../../lib/Table.svelte";
+  import Table from "./Table.svelte";
+  import localforage from "localforage";
+
   export let slug;
-  export let examples;
-  export let info = {};
-  export let metadata = [];
+  export let examples = [];
+
+  const key = `train.motif.${slug}.v1`;
+  let info = {};
+  let metadata = [];
+  let labels;
+
+  $: labels && localforage.setItem(key, labels);
 
   onMount(async () => {
     let resp;
@@ -31,55 +38,11 @@
     info = await resp.json();
     resp = await fetch(`/data/metadata/${slug}/metadata.json`);
     metadata = await resp.json();
-  });
 
-  $: columns = [
-    {
-      name: "name",
-      format: (row) => `<a href=${row.url} target="_blank">${row.name}</a>`,
-      html: true
-    },
-    {
-      name: "motif",
-      format: (row) => `
-	  	<audio
-			preload="none"
-			controls
-			src="/data/motif/train_short_audio/${slug}/${row.name}/motif.0.ogg"
-        />`,
-      html: true
-    },
-    {
-      name: "motif pair",
-      format: (row) => `
-		<audio
-			preload="none"
-			controls
-			src="/data/motif/train_short_audio/${slug}/${row.name}/motif.1.ogg"
-		/>`,
-      html: true
-    },
-    // TODO: put in a component that grabs information from the metadata
-    {
-      name: "source audio",
-      format: (row) => {
-        return `<details><audio
-            preload="none"
-            controls
-            src="/data/input/train_short_audio/${slug}/${row.name}.ogg"
-          /></details>`;
-      },
-      html: true
-    },
-    { name: "date" },
-    { name: "rating" },
-    {
-      name: "type"
-    },
-    {
-      name: "secondary_labels"
-    }
-  ];
+    labels =
+      (await localforage.getItem(key)) ||
+      Object.fromEntries(examples.map((name) => [name, { is_valid: True }]));
+  });
 
   $: data = metadata.filter((row) => examples.includes(row.name));
 </script>
@@ -99,5 +62,5 @@
 <a href="/train">back to species</a>
 
 {#if data.length}
-  <Table {data} {columns} paginationSize={10} />
+  <Table {slug} {data} paginationSize={10} />
 {/if}

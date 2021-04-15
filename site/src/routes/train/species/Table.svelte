@@ -1,5 +1,6 @@
 <script>
   import { chunk } from "lodash";
+  import Labels from "./Labels.svelte";
 
   export let slug;
   export let data = [];
@@ -10,6 +11,9 @@
   $: total = data.length;
   $: pages = chunked.length;
 
+  let labels;
+  $: names = data.map((row) => row.name);
+
   function prev() {
     idx > 0 ? idx-- : null;
   }
@@ -18,11 +22,14 @@
   }
 </script>
 
+<Labels {slug} {names} bind:labels />
+
 <div>
   <table cellpadding="5">
     <thead>
       <tr>
         <th>name</th>
+        <th>label (valid)</th>
         <th>motif</th>
         <th>motif pair</th>
         <th>source audio</th>
@@ -39,8 +46,26 @@
             <a href={row.url} target="_blank">{row.name}</a>
           </td>
           <td>
+            {#if labels}
+              <label
+                ><input
+                  type="checkbox"
+                  bind:checked={labels[`${row.name}.motif.0`]["is_valid"]}
+                  onchange={() => (labels = { ...labels })}
+                />
+                motif</label
+              >
+              <label>
+                <input
+                  type="checkbox"
+                  bind:checked={labels[`${row.name}.motif.1`]["is_valid"]}
+                  onchange={() => (labels = { ...labels })}
+                />pair</label
+              >
+            {/if}
+          </td>
+          <td>
             <!-- svelte-ignore a11y-media-has-caption -->
-
             <audio
               preload="none"
               controls
@@ -49,7 +74,6 @@
           >
           <td>
             <!-- svelte-ignore a11y-media-has-caption -->
-
             <audio
               preload="none"
               controls

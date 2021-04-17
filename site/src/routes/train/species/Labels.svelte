@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import localforage from "localforage";
   import filesaver from "file-saver";
-  import { sortBy } from "lodash";
+  import { sortBy, mapValues } from "lodash";
 
   export let slug;
   export let names;
@@ -13,13 +13,19 @@
   $: labels && localforage.setItem(key, labels);
 
   onMount(async () => {
-    labels =
+    labels = mapValues(
       (await localforage.getItem(key)) ||
-      Object.fromEntries(
-        names
-          .map((name) => [`${name}.motif.0`, { is_valid: true }])
-          .concat(names.map((name) => [`${name}.motif.1`, { is_valid: true }]))
-      );
+        Object.fromEntries(
+          names
+            .map((name) => [`${name}.motif.0`, {}])
+            .concat(names.map((name) => [`${name}.motif.1`, {}]))
+        ),
+      (value) => ({
+        is_valid: true,
+        timestamp: null,
+        ...value
+      })
+    );
   });
 
   function save(labels) {

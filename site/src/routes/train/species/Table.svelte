@@ -47,21 +47,29 @@
           </td>
           <td>
             {#if labels}
-              <label
-                ><input
-                  type="checkbox"
-                  bind:checked={labels[`${row.name}.motif.0`]["is_valid"]}
-                  onchange={() => (labels = { ...labels })}
-                />
-                motif</label
+              <div
+                style={labels[`${row.name}.motif.0`]["timestamp"] ? "background:lightgreen" : null}
               >
-              <label>
-                <input
-                  type="checkbox"
-                  bind:checked={labels[`${row.name}.motif.1`]["is_valid"]}
-                  onchange={() => (labels = { ...labels })}
-                />pair</label
+                <label
+                  ><input
+                    type="checkbox"
+                    bind:checked={labels[`${row.name}.motif.0`]["is_valid"]}
+                    onchange={() => (labels = { ...labels })}
+                  />
+                  motif</label
+                >
+              </div>
+              <div
+                style={labels[`${row.name}.motif.1`]["timestamp"] ? "background:lightgreen" : null}
               >
+                <label>
+                  <input
+                    type="checkbox"
+                    bind:checked={labels[`${row.name}.motif.1`]["is_valid"]}
+                    onchange={() => (labels = { ...labels })}
+                  />pair</label
+                >
+              </div>
             {/if}
           </td>
           <td>
@@ -69,6 +77,8 @@
             <audio
               preload="none"
               controls
+              on:play={() =>
+                (labels[`${row.name}.motif.0`]["timestamp"] = new Date().toISOString())}
               src="/data/motif/train_short_audio/{slug}/{row.name}/motif.0.ogg"
             /></td
           >
@@ -77,6 +87,8 @@
             <audio
               preload="none"
               controls
+              on:play={() =>
+                (labels[`${row.name}.motif.1`]["timestamp"] = new Date().toISOString())}
               src="/data/motif/train_short_audio/{slug}/{row.name}/motif.1.ogg"
             />
           </td>

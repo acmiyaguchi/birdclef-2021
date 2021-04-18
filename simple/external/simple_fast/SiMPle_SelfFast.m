@@ -90,7 +90,7 @@ for i = 2:MatrixProfileLength
 end
 
     
-% end
+end
 
 
 %% The following two functions are modified from the code provided in the following URL
@@ -102,6 +102,7 @@ x(n+1:2*n,:) = 0;
 X = fft(x);
 cum_sumx2 =  cumsum(x.^2);
 sumx2 = cum_sumx2(m:n,:)-[zeros(1,nD);cum_sumx2(1:n-m,:)];
+end
 
 function [dist, z, dropval, sumy2] = fastfindNN(X, y, n, m, nD, sumx2)
 dropval=y(1,:);
@@ -125,4 +126,4 @@ for iD = 1 : nD
     dist = dist + sumx2(:,iD)-2*z(:,iD)+sumy2(iD);
     %dist = sqrt(dist);
 end
-
+end

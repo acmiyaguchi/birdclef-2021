@@ -1,6 +1,6 @@
 """Remove empty files from the motif folder."""
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 root = Path(__file__).parent.parent / "data"
 

@@ -1,3 +1,4 @@
+"""Find the motif pair for each training audio clip in a dataset."""
 import json
 import shutil
 import tempfile
@@ -5,6 +6,7 @@ from ast import literal_eval
 from pathlib import Path
 from subprocess import PIPE, run
 
+import click
 import IPython.display as ipd
 import librosa
 import numpy as np
@@ -93,9 +95,11 @@ def write(input_path, output_path, cens_sr=10, mp_window=50):
     return ipd.Audio(data[offsets[0] : offsets[1]], rate=sample_rate)
 
 
-def main():
+@click.command()
+@click.argument("species", type=str)
+def main(species):
     rel_root = ROOT / "data/input"
-    src = rel_root / "train_short_audio/osprey"
+    src = rel_root / "train_short_audio" / species
     dst = Path("data/motif")
     files = list(src.glob("**/*.ogg"))
     for path in tqdm.tqdm(files):

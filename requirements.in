@@ -4,3 +4,5 @@ librosa
 matplotlib
 tqdm
 pandas
+scikit-learn
+click

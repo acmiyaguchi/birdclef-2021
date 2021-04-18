@@ -32,6 +32,8 @@ cffi==1.14.5
     #   soundfile
 chardet==4.0.0
     # via requests
+click==7.1.2
+    # via -r requirements.in
 colorama==0.4.4
     # via ipython
 cycler==0.10.0
@@ -215,7 +217,9 @@ requests==2.25.1
 resampy==0.2.2
     # via librosa
 scikit-learn==0.24.1
-    # via librosa
+    # via
+    #   -r requirements.in
+    #   librosa
 scipy==1.6.2
     # via
     #   librosa

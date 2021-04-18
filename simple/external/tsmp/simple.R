@@ -1,3 +1,16 @@
+#' Global constants
+#'
+#' @return Returns a `list` with the global constants
+#' @keywords internal
+#' @noRd
+#'
+vars <- function() {
+  eps <- .Machine$double.eps^0.5
+  kmode <- 0.6311142 # mode is ((a-1) / (a*b-1))^(1/a) ==> 0.6311142
+
+  return(list(eps = eps, kmode = kmode))
+}
+
 #' Compute the join similarity for Sound data
 #'
 #' @details
@@ -187,9 +200,9 @@ simple_fast <- function(..., window_size, exclusion_zone = getOption("tsmp.exclu
     query_sumy2 <- query_sumy2 - dropval^2 + data_window[window_size, ]^2
 
     for (j in 1:n_dim) {
-      last_product[2:(data_size - window_size + 1), j] <- last_product[1:(data_size - window_size), j] -
-        query[1:(data_size - window_size), j] * dropval[j] +
-        query[(window_size + 1):data_size, j] * data_window[window_size, j]
+      last_product[2:(query_size - window_size + 1), j] <- last_product[1:(query_size - window_size), j] -
+        query[1:(query_size - window_size), j] * dropval[j] +
+        query[(window_size + 1):query_size, j] * data_window[window_size, j]
     }
 
     last_product[1, ] <- first_product[i, ]

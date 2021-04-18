@@ -1,0 +1,15 @@
+{
+  "source_name": "train_short_audio/acafly/XC6671.ogg",
+  "cens_sample_rate": 10,
+  "matrix_profile_window": 50,
+  "cens_0": 245,
+  "cens_1": 170,
+  "motif_0_i": 532085,
+  "motif_0_j": 640674,
+  "motif_1_i": 369202,
+  "moitif_1_j": 477791,
+  "sample_rate": 22050,
+  "duration_seconds": 31.52,
+  "duration_cens": 320,
+  "duration_samples": 694969
+}

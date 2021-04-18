@@ -56,6 +56,7 @@ def write(input_path, output_path, cens_sr=10, mp_window=50):
 
     # write out three things: metadata, ogg, and npx data of the cens transformed data
     offsets = []
+    np.save(f"{path}/motif.cens", cens)
     for off, x in enumerate(idx):
         i, j = compute_offset(x, mp_window, cens.shape[1], data.shape[0])
 
@@ -66,6 +67,7 @@ def write(input_path, output_path, cens_sr=10, mp_window=50):
             format="ogg",
             subtype="vorbis",
         )
+        np.save(f"{path}/motif.cens.{off}", cens[:, x : x + mp_window])
         np.save(f"{path}/motif.{off}", data[i:j])
         offsets += [i, j]
 
@@ -106,9 +108,9 @@ def main(species):
         rel_dir = path.relative_to(rel_root).parent
         try:
             write(path, dst / rel_dir, cens_sr=10, mp_window=50)
-        except:
-            print(f"issue processing {path}")
-            shutil.rmtree(dst / rel_dir)
+        except Exception as e:
+            print(f"issue processing {path}: {e}")
+            shutil.rmtree(dst / rel_dir / path.name.rstrip(".ogg"))
             continue
 
 

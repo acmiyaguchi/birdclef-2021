@@ -33,5 +33,5 @@ def test_simple_fast_self_join():
     ref_mp = np.genfromtxt(ROOT / "full.cens.mp.csv", delimiter=",")
     ref_pi = np.genfromtxt(ROOT / "full.cens.pi.csv", delimiter=",")
     mp, pi = simple_fast(full, full, 50)
-    assert np.allclose(ref_mp, mp), mp
+    assert np.allclose(ref_mp, mp), mp[abs(ref_mp - mp) > 0.001]
     assert np.allclose(ref_pi - 1, pi), pi

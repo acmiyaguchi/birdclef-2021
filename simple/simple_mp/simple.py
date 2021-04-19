@@ -12,6 +12,13 @@ def simple_fast(data, query, window_size):
             f"incompatible query dimension: {query.shape} against {data.shape}"
         )
 
+    # only used for self-join
+    exclusion_zone = (
+        round(window_size / 2)
+        if data.shape == query.shape and np.allclose(data, query)
+        else 0
+    )
+
     n, dim = query.shape
 
     matrix_profile_length = data.shape[0] - window_size + 1
@@ -26,6 +33,9 @@ def simple_fast(data, query, window_size):
     X, sumx2 = mass_pre(query, window_size)
     distance_profile, z, sumy2 = mass(X, data[:window_size], n, window_size, dim, sumx2)
     dropval = data[0]
+
+    # only done on self joins
+    distance_profile[:exclusion_zone] = np.Inf
 
     # compute the first distance profile
     idx = np.argmin(distance_profile)
@@ -50,6 +60,11 @@ def simple_fast(data, query, window_size):
         distance_profile = np.zeros(sumx2.shape[0])
         for j in range(dim):
             distance_profile = distance_profile + sumx2[:, j] - 2 * z[:, j] + sumy2[j]
+
+        if exclusion_zone > 0:
+            start = max(0, i - exclusion_zone)
+            end = min(matrix_profile_length, i + exclusion_zone + 1)
+            distance_profile[start:end] = np.Inf
 
         idx = np.argmin(distance_profile)
         profile_index[i] = idx

@@ -35,7 +35,7 @@ def simple_fast(data, query, window_size):
     # compute the rest of the matrix profile
     nz, _ = z.shape
     for i in range(1, matrix_profile_length):
-        subsequence = data[i : i + window_size - 1]
+        subsequence = data[i : i + window_size]
         sumy2 = sumy2 - dropval ** 2 + subsequence[-1] ** 2
         for j in range(dim):
             z[1:nz, j] = (
@@ -63,7 +63,7 @@ def mass_pre(x, m):
     n, dim = x.shape
     x_mat = np.zeros((2 * n, dim))
     x_mat[:n] = x
-    X = fft(x_mat)
+    X = fft(x_mat, axis=0)
     cum_sumx2 = (x ** 2).cumsum(axis=0)
     sumx2 = cum_sumx2[m - 1 : n] - np.append(
         np.zeros((1, dim)), cum_sumx2[: n - m], axis=0
@@ -91,9 +91,9 @@ def mass(X, y, n, m, dim, sumx2):
     # computing dot product in O(n log n) time
     y_mat = np.zeros((2 * n, dim))
     y_mat[:m] = y[::-1]
-    Y = fft(y_mat)
+    Y = fft(y_mat, axis=0)
     Z = X * Y
-    z = np.real(ifft(Z)[m - 1 : n])
+    z = np.real(ifft(Z, axis=0)[m - 1 : n])
 
     # compute y stats O(n)
     sumy2 = (y ** 2).sum(axis=0)

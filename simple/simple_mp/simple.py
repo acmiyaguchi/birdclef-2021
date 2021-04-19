@@ -35,10 +35,10 @@ def simple_fast(data, query, window_size):
     # compute the rest of the matrix profile
     nz, _ = z.shape
     for i in range(1, matrix_profile_length):
-        subsequence = data[i - 1 : i + window_size - 1]
+        subsequence = data[i : i + window_size - 1]
         sumy2 = sumy2 - dropval ** 2 + subsequence[-1] ** 2
         for j in range(dim):
-            z[1 : nz + 1, j] = (
+            z[1:nz, j] = (
                 z[: nz - 1, j]
                 + subsequence[-1, j] * query[window_size : window_size + nz - 1, j]
                 - dropval[j] * query[: nz - 1, j]
@@ -93,7 +93,7 @@ def mass(X, y, n, m, dim, sumx2):
     y_mat[:m] = y[::-1]
     Y = fft(y_mat)
     Z = X * Y
-    z = np.real(ifft(Z))[m - 1 : n]
+    z = np.real(ifft(Z)[m - 1 : n])
 
     # compute y stats O(n)
     sumy2 = (y ** 2).sum(axis=0)

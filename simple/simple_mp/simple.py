@@ -20,13 +20,12 @@ def simple_fast(data, query, window_size):
 
     # compute the first dot-product for the data and query
     X, sumx2 = mass_pre(data, window_size)
-    _, z0, _ = mass(X, query[:window_size], n, window_size, dim, sumx2)
-
-    # compute necessary values
-    X, sumx2 = mass_pre(query, window_size)
+    _, z0, _ = mass(X, query[:window_size], data.shape[0], window_size, dim, sumx2)
 
     # compute the first distance profile
+    X, sumx2 = mass_pre(query, window_size)
     distance_profile, z, sumy2 = mass(X, data[:window_size], n, window_size, dim, sumx2)
+    dropval = data[0]
 
     # compute the first distance profile
     idx = np.argmin(distance_profile)
@@ -34,16 +33,14 @@ def simple_fast(data, query, window_size):
     matrix_profile[0] = distance_profile[idx]
 
     # compute the rest of the matrix profile
-    dropval = data[0]
-    nz = z.shape[0]
     for i in range(1, matrix_profile_length):
         subsequence = data[i : i + window_size]
         sumy2 -= dropval ** 2 + subsequence[-1] ** 2
         for j in range(dim):
-            z[1:nz, j] = (
-                z[: nz - 1, j]
-                + query[window_size : window_size + nz - 1, j] * subsequence[-1, j]
-                - query[: nz - 1, j] * dropval[j]
+            z[1 : n - window_size + 1, j] = (
+                z[: n - window_size, j]
+                - query[: n - window_size, j] * dropval[j]
+                + query[window_size:n, j] * subsequence[-1, j]
             )
 
         z[0] = z0[i]
@@ -95,7 +92,7 @@ def mass(X, y, n, m, dim, sumx2):
     y_mat[:m] = y[::-1]
     Y = fft(y_mat)
     Z = X * Y
-    z = np.real(ifft(Z)[m - 1 : n])
+    z = np.real(ifft(Z))[m - 1 : n]
 
     # compute y stats O(n)
     sumy2 = (y ** 2).sum(axis=0)
@@ -103,5 +100,5 @@ def mass(X, y, n, m, dim, sumx2):
     # compute distances O(n)
     dist = np.zeros(sumx2.shape[0])
     for i in range(dim):
-        dist = dist + sumx2[:, i] - 2 * z[:, i] + sumy2[i]
+        dist += sumx2[:, i] - 2 * z[:, i] + sumy2[i]
     return dist, z, sumy2

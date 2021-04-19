@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.fft import fft2, ifft2
+from numpy.fft import fft, ifft
 
 
 def simple_fast(data, query, window_size):
@@ -20,17 +20,13 @@ def simple_fast(data, query, window_size):
 
     # compute the first dot-product for the data and query
     X, sumx2 = mass_pre(data, window_size)
-    _, z0, _ = mass(X, query[:window_size, :], n, window_size, dim, sumx2)
+    _, z0, _ = mass(X, query[:window_size], n, window_size, dim, sumx2)
 
     # compute necessary values
     X, sumx2 = mass_pre(query, window_size)
 
     # compute the first distance profile
-    distance_profile, z, sumy2 = mass(
-        X, data[:window_size, :], n, window_size, dim, sumx2
-    )
-    print(distance_profile)
-    dropval = data[0, :]
+    distance_profile, z, sumy2 = mass(X, data[:window_size], n, window_size, dim, sumx2)
 
     # compute the first distance profile
     idx = np.argmin(distance_profile)
@@ -38,10 +34,11 @@ def simple_fast(data, query, window_size):
     matrix_profile[0] = distance_profile[idx]
 
     # compute the rest of the matrix profile
+    dropval = data[0]
     nz = z.shape[0]
-    for i in range(1, matrix_profile_length - 1):
-        subsequence = data[i : i + window_size - 1, :]
-        sumy2 = sumy2 - dropval ** 2 + subsequence[-1, :] ** 2
+    for i in range(1, matrix_profile_length):
+        subsequence = data[i : i + window_size]
+        sumy2 -= dropval ** 2 + subsequence[-1] ** 2
         for j in range(dim):
             z[1:nz, j] = (
                 z[: nz - 1, j]
@@ -49,8 +46,8 @@ def simple_fast(data, query, window_size):
                 - query[: nz - 1, j] * dropval[j]
             )
 
-        z[0, :] = z0[i, :]
-        dropval = subsequence[0, :]
+        z[0] = z0[i]
+        dropval = subsequence[0]
 
         distance_profile = np.zeros(sumx2.shape[0])
         for j in range(dim):
@@ -66,12 +63,12 @@ def simple_fast(data, query, window_size):
 def mass_pre(x, m):
     """m is the window size."""
     n, dim = x.shape
-    # x_mat = np.zeros((2 * n, dim))
-    # x_mat[:n, :] = x[::-1, :]
-    X = fft2(x)
-    cum_sumx2 = (X ** 2).cumsum(axis=0)
-    sumx2 = cum_sumx2[m:n, :] - np.append(
-        np.zeros((1, dim)), cum_sumx2[1 : n - m, :], axis=0
+    x_mat = np.zeros((2 * n, dim))
+    x_mat[:n] = x
+    X = fft(x_mat)
+    cum_sumx2 = (x ** 2).cumsum(axis=0)
+    sumx2 = cum_sumx2[m - 1 : n] - np.append(
+        np.zeros((1, dim)), cum_sumx2[: n - m], axis=0
     )
     return X, sumx2
 
@@ -94,11 +91,11 @@ def mass(X, y, n, m, dim, sumx2):
     """
 
     # computing dot product in O(n log n) time
-    # y_mat = np.zeros((2 * n, dim))
-    # y_mat[:m, :] = y[::-1, :]
-    Y = fft2(y)
-    Z = X.dot(Y.T)
-    z = np.real(ifft2(Z)[m:n, :])
+    y_mat = np.zeros((2 * n, dim))
+    y_mat[:m] = y[::-1]
+    Y = fft(y_mat)
+    Z = X * Y
+    z = np.real(ifft(Z)[m - 1 : n])
 
     # compute y stats O(n)
     sumy2 = (y ** 2).sum(axis=0)

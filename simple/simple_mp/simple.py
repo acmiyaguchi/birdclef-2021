@@ -15,8 +15,8 @@ def simple_fast(data, query, window_size):
     n, dim = query.shape
 
     matrix_profile_length = data.shape[0] - window_size + 1
-    matrix_profile = np.zeros(window_size)
-    profile_index = np.zeros(window_size)
+    matrix_profile = np.zeros(matrix_profile_length)
+    profile_index = np.zeros(matrix_profile_length)
 
     # compute the first dot-product for the data and query
     X, sumx2 = mass_pre(data, window_size)
@@ -29,25 +29,26 @@ def simple_fast(data, query, window_size):
     distance_profile, z, sumy2 = mass(
         X, data[:window_size, :], n, window_size, dim, sumx2
     )
+    print(distance_profile)
     dropval = data[0, :]
 
     # compute the first distance profile
     idx = np.argmin(distance_profile)
-    matrix_profile[0] = idx
-    profile_index[0] = distance_profile[idx]
+    profile_index[0] = idx
+    matrix_profile[0] = distance_profile[idx]
 
     # compute the rest of the matrix profile
     nz = z.shape[0]
-    for i in range(1, matrix_profile_length):
+    for i in range(1, matrix_profile_length - 1):
         subsequence = data[i : i + window_size - 1, :]
         sumy2 = sumy2 - dropval ** 2 + subsequence[-1, :] ** 2
         for j in range(dim):
             z[1:nz, j] = (
                 z[: nz - 1, j]
-                # NOTE: hmmmm
-                + query[window_size + 1 : window_size + nz - 1, j] * subsequence[-1, j]
-                - query[1 : nz - 1, j] * dropval[j]
+                + query[window_size : window_size + nz - 1, j] * subsequence[-1, j]
+                - query[: nz - 1, j] * dropval[j]
             )
+
         z[0, :] = z0[i, :]
         dropval = subsequence[0, :]
 
@@ -56,8 +57,8 @@ def simple_fast(data, query, window_size):
             distance_profile = distance_profile + sumx2[:, j] - 2 * z[:, j] + sumy2[j]
 
         idx = np.argmin(distance_profile)
-        matrix_profile[0] = idx
-        profile_index[0] = distance_profile[idx]
+        profile_index[i] = idx
+        matrix_profile[i] = distance_profile[idx]
 
     return matrix_profile, profile_index
 

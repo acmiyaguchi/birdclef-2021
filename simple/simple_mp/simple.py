@@ -47,19 +47,16 @@ def simple_fast(data, query, window_size):
     for i in range(1, matrix_profile_length):
         subsequence = data[i : i + window_size]
         sumy2 = sumy2 - dropval ** 2 + subsequence[-1] ** 2
-        for j in range(dim):
-            z[1:nz, j] = (
-                z[: nz - 1, j]
-                + subsequence[-1, j] * query[window_size : window_size + nz - 1, j]
-                - dropval[j] * query[: nz - 1, j]
-            )
+        z[1:nz] = (
+            z[: nz - 1]
+            + subsequence[-1] * query[window_size : window_size + nz - 1]
+            - dropval * query[: nz - 1]
+        )
 
         z[0] = z0[i]
         dropval = subsequence[0]
 
-        distance_profile = np.zeros(sumx2.shape[0])
-        for j in range(dim):
-            distance_profile = distance_profile + sumx2[:, j] - 2 * z[:, j] + sumy2[j]
+        distance_profile = (sumx2 - 2 * z + sumy2).sum(axis=1)
 
         if exclusion_zone > 0:
             start = max(0, i - exclusion_zone)
@@ -114,7 +111,5 @@ def mass(X, y, n, m, dim, sumx2):
     sumy2 = (y ** 2).sum(axis=0)
 
     # compute distances O(n)
-    dist = np.zeros(sumx2.shape[0])
-    for j in range(dim):
-        dist = dist + sumx2[:, j] - 2 * z[:, j] + sumy2[j]
+    dist = (sumx2 - 2 * z + sumy2).sum(axis=1)
     return dist, z, sumy2

@@ -67,7 +67,7 @@ def simple_fast(data, query, window_size):
         profile_index[i] = idx
         matrix_profile[i] = distance_profile[idx]
 
-    return matrix_profile, profile_index
+    return matrix_profile, profile_index.astype(int)
 
 
 def mass_pre(x, m):

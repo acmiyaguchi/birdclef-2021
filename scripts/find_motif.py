@@ -1,6 +1,7 @@
 """Find the motif pair for each training audio clip in a dataset."""
 import json
 from pathlib import Path
+from multiprocessing import Pool
 
 import click
 import IPython.display as ipd
@@ -95,9 +96,14 @@ def main(species):
     src = rel_root / "train_short_audio" / species
     dst = Path("data/motif")
     files = list(src.glob("**/*.ogg"))
-    for path in tqdm.tqdm(files):
+
+    args = []
+    for path in files:
         rel_dir = path.relative_to(rel_root).parent
-        write(path, dst / rel_dir, cens_sr=10, mp_window=50)
+        args.append([path, dst / rel_dir, 10, 50])
+
+    with Pool(12) as p:
+        p.starmap(write, tqdm.tqdm(args, total=len(args)), chunksize=1)
 
 
 if __name__ == "__main__":

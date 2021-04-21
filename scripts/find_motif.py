@@ -1,10 +1,6 @@
 """Find the motif pair for each training audio clip in a dataset."""
 import json
-import shutil
-import tempfile
-from ast import literal_eval
 from pathlib import Path
-from subprocess import PIPE, run
 
 import click
 import IPython.display as ipd
@@ -12,6 +8,7 @@ import librosa
 import numpy as np
 import soundfile as sf
 import tqdm
+from simple_mp.simple import simple_fast
 
 ROOT = Path(__file__).parent.parent
 
@@ -21,16 +18,10 @@ def cens_per_sec(sample_rate, target):
     return (sample_rate // (target * (2 ** 6))) * (2 ** 6)
 
 
-def get_motif_index(data, window_size, cwd=ROOT):
-    with tempfile.NamedTemporaryFile(delete=False) as fp:
-        np.save(fp, data)
-        res = run(
-            f"RScript.exe simple_motif_index.R {fp.name} {window_size}",
-            stdout=PIPE,
-            stderr=PIPE,
-            cwd=cwd,
-        )
-    return literal_eval(res.stdout.decode())
+def get_motif_index(data, window_size):
+    mp, pi = simple_fast(data, data, window_size)
+    motif = np.argmin(mp)
+    return int(motif), int(pi[motif])
 
 
 def compute_offset(index, window_size, cens_total, data_total):
@@ -106,12 +97,7 @@ def main(species):
     files = list(src.glob("**/*.ogg"))
     for path in tqdm.tqdm(files):
         rel_dir = path.relative_to(rel_root).parent
-        try:
-            write(path, dst / rel_dir, cens_sr=10, mp_window=50)
-        except Exception as e:
-            print(f"issue processing {path}: {e}")
-            shutil.rmtree(dst / rel_dir / path.name.rstrip(".ogg"))
-            continue
+        write(path, dst / rel_dir, cens_sr=10, mp_window=50)
 
 
 if __name__ == "__main__":

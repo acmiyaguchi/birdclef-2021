@@ -14,12 +14,14 @@
 
   onMount(async () => {
     labels = mapValues(
-      (await localforage.getItem(key)) ||
-        Object.fromEntries(
+      {
+        ...Object.fromEntries(
           names
             .map((name) => [`${name}.motif.0`, {}])
             .concat(names.map((name) => [`${name}.motif.1`, {}]))
         ),
+        ...((await localforage.getItem(key)) || {})
+      },
       (value) => ({
         is_valid: true,
         timestamp: null,

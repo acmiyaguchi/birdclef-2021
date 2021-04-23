@@ -10,13 +10,9 @@ import numpy as np
 import soundfile as sf
 import tqdm
 from simple_mp.simple import simple_fast
+from birdclef.utils import cens_per_sec
 
 ROOT = Path(__file__).parent.parent
-
-
-def cens_per_sec(sample_rate, target):
-    """Ensure this value is a multiple of 2**6"""
-    return (sample_rate // (target * (2 ** 6))) * (2 ** 6)
 
 
 def get_motif_index(data, window_size):

@@ -4,3 +4,5 @@ venv/
 .Rhistory
 .ipynb_checkpoints/
 .Rproj.user
+__pycache__/
+*.egg-info/

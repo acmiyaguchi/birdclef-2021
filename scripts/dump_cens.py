@@ -8,6 +8,7 @@ import pandas as pd
 import tqdm
 
 from birdclef.utils import cens_per_sec
+from birdclef import istarmap
 
 ROOT = Path(__file__).parent.parent
 
@@ -20,18 +21,16 @@ def dump_data(path, cens_sr):
     return data, sample_rate, cens
 
 
-def write(input_path, output_path, cens_sr, parallelism=12):
+def write(input_path, output_path, cens_sr):
     paths = list(input_path.glob("*.ogg"))
     if not paths:
-        print(f"no files found in {input_path}")
+        # print(f"no files found in {input_path}")
         return
 
-    print(f"processing {input_path}")
+    # print(f"processing {input_path}")
     output_path.mkdir(exist_ok=True, parents=True)
 
-    args = [(path, cens_sr) for path in paths]
-    with Pool(parallelism) as p:
-        dumped = p.starmap(dump_data, tqdm.tqdm(args, total=len(args)), chunksize=1)
+    dumped = [dump_data(path, cens_sr) for path in paths]
 
     res = []
     for (data, sample_rate, cens), path in zip(dumped, paths):
@@ -67,10 +66,14 @@ def main(prefix, cens_sr, parallelism):
             continue
         rel_dir = Path(dirpath).relative_to(rel_root)
         output_dir = dst / rel_dir
-        if output_dir.exists():
+        if output_dir.exists() and list(output_dir.glob("*")):
             print(f"skipping {output_dir}, already exists")
             continue
-        write(Path(dirpath), output_dir, cens_sr, parallelism)
+        args += [(Path(dirpath), output_dir, cens_sr)]
+
+    with Pool(parallelism) as p:
+        for _ in tqdm.tqdm(p.istarmap(write, args), total=len(args)):
+            pass
 
 
 if __name__ == "__main__":

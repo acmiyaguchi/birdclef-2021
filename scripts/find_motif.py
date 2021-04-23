@@ -10,7 +10,7 @@ import numpy as np
 import soundfile as sf
 import tqdm
 from simple_mp.simple import simple_fast
-from birdclef.utils import cens_per_sec
+from birdclef.utils import cens_per_sec, compute_offset
 
 ROOT = Path(__file__).parent.parent
 
@@ -19,12 +19,6 @@ def get_motif_index(data, window_size):
     mp, pi = simple_fast(data, data, window_size)
     motif = np.argmin(mp)
     return int(motif), int(pi[motif])
-
-
-def compute_offset(index, window_size, cens_total, data_total):
-    a = int((index / cens_total) * data_total)
-    b = int(((index + window_size) / cens_total) * data_total)
-    return a, b
 
 
 def write(input_path, output_path, cens_sr=10, mp_window=50):

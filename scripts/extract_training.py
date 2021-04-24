@@ -21,15 +21,22 @@ def compute_motif(cens):
     return mp.argmin()
 
 
-def compute_affinity(df):
+def compute_affinity(df, sample=100):
     n = df.shape[0]
     aff = np.zeros((n, n))
 
-    # slow n^2 computation...
-    for i in range(n):
+    # slow n^2 computation, so we sample...
+    if sample is None or n <= sample:
+        indices = np.arange(n)
+    else:
+        # limit the indices we compute to the number of sampled items.
+        # Unfortunately this makes the training set non-deterministic (which is
+        # probably fine anyhow). Taking the best 5 out of 100 seems good...
+        indices = np.random.choice(np.arange(n), sample, replace=False)
+    for off, i in enumerate(indices):
         row = df.iloc[i]
         motif = row.cens[:, row.motif : row.motif + 50]
-        for j in range(i, n):
+        for j in indices[off:]:
             mp, _ = simple_fast(df.iloc[j].cens, motif, 25)
             # i wish i could keep each of the matrix profiles...
             aff[i][j] = mp.min()
@@ -39,17 +46,20 @@ def compute_affinity(df):
 
 def create_digraph(affinity):
     k = 1.4826
-    mad = median_abs_deviation(affinity.reshape(-1))
-    zscores = (affinity - np.median(affinity)) / (k * mad)
-    dropped = affinity * (zscores < 1)
+    # there may be large number of 0 elements, ignore them
+    masked = np.ma.masked_where(affinity == 0, affinity)
+    unmasked = masked[masked.mask == False].reshape(-1).filled(0)
+    mad = median_abs_deviation(unmasked)
+    zscores = (masked - np.median(unmasked)) / (k * mad)
+    dropped = masked * (zscores < 1)
     normed = dropped / dropped.sum()
-    return nx.from_numpy_matrix(normed, create_using=nx.DiGraph)
+    return nx.from_numpy_matrix(normed.filled(0), create_using=nx.DiGraph)
 
 
-def get_reference_motif(df, G):
+def get_reference_motif(df, G, k=5):
     pr = nx.pagerank(G)
     ranked = sorted([(score, idx) for idx, score in pr.items()])
-    best = [idx for _, idx in ranked[-5:]]
+    best = [idx for _, idx in ranked[-k:]]
     return df.iloc[best].apply(lambda r: r.cens[:, r.motif : r.motif + 50], axis=1)
 
 
@@ -64,11 +74,13 @@ def write(input_path, output_path):
     df = pd.read_pickle((input_path / "data.pkl.gz").as_posix())
     df["motif"] = df.cens.apply(compute_motif)
 
-    aff = compute_affinity(df)
+    # create an affinity matrix out of 64 randomly sampled motifs, and choose
+    # the top 8 based on the pagerank score
+    aff = compute_affinity(df, 64)
     np.save(output_path / "affinity", aff)
     G = create_digraph(aff)
     nx.write_weighted_edgelist(G, (output_path / "edgelist").as_posix())
-    motifs = get_reference_motif(df, G)
+    motifs = get_reference_motif(df, G, 8)
     motifs.to_pickle(output_path / "motifs.pkl.gz")
 
     profiles = []
@@ -110,7 +122,7 @@ def write(input_path, output_path):
 def main(parallelism):
     rel_root = ROOT / "data/cens/train_short_audio"
     src = rel_root
-    dst = Path("data/extract_training")
+    dst = Path("data/extract_training_v2")
     dst.mkdir(parents=True, exist_ok=True)
 
     args = []

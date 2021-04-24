@@ -1,4 +1,5 @@
 import librosa
+import numpy as np
 
 
 def cens_per_sec(sample_rate, target):
@@ -18,3 +19,15 @@ def compute_offset(index, window_size, cens_total, data_total):
     start = index / cens_total
     end = (index + window_size) / cens_total
     return int(start * data_total), int(end * data_total)
+
+
+def get_transition_index(v, offset=0):
+    idx = np.where(v[:-1] != v[1:])[0] + 1 + offset
+    if v[0]:
+        idx = np.append([0], idx)
+    if v[-1]:
+        idx = np.append(idx, [-1])
+    res = []
+    for i in range(idx.shape[0] // 2):
+        res.append(([idx[2 * i], idx[(2 * i) + 1]]))
+    return res

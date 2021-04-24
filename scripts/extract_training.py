@@ -1,0 +1,133 @@
+import os
+from birdclef import istarmap
+from multiprocessing import Pool
+from pathlib import Path
+
+import click
+import networkx as nx
+import numpy as np
+import pandas as pd
+import tqdm
+from scipy.stats import median_abs_deviation
+from simple_mp.simple import simple_fast
+
+from birdclef.utils import aligned_slice_indices, get_transition_index
+
+ROOT = Path(__file__).parent.parent
+
+
+def compute_motif(cens):
+    mp, pi = simple_fast(cens, cens, 50)
+    return mp.argmin()
+
+
+def compute_affinity(df):
+    n = df.shape[0]
+    aff = np.zeros((n, n))
+
+    # slow n^2 computation...
+    for i in range(n):
+        row = df.iloc[i]
+        motif = row.cens[:, row.motif : row.motif + 50]
+        for j in range(i, n):
+            mp, _ = simple_fast(df.iloc[j].cens, motif, 25)
+            # i wish i could keep each of the matrix profiles...
+            aff[i][j] = mp.min()
+            aff[j][i] = mp.min()
+    return aff
+
+
+def create_digraph(affinity):
+    k = 1.4826
+    mad = median_abs_deviation(affinity.reshape(-1))
+    zscores = (affinity - np.median(affinity)) / (k * mad)
+    dropped = affinity * (zscores < 1)
+    normed = dropped / dropped.sum()
+    return nx.from_numpy_matrix(normed, create_using=nx.DiGraph)
+
+
+def get_reference_motif(df, G):
+    pr = nx.pagerank(G)
+    ranked = sorted([(score, idx) for idx, score in pr.items()])
+    best = [idx for _, idx in ranked[-5:]]
+    return df.iloc[best].apply(lambda r: r.cens[:, r.motif : r.motif + 50], axis=1)
+
+
+def extract_samples(cens, indices, window=50):
+    aligned = aligned_slice_indices(cens.shape[1], indices, window)
+    return list(zip([cens[:, i:j] for i, j in aligned], aligned))
+
+
+def write(input_path, output_path):
+    output_path.mkdir(exist_ok=True, parents=True)
+
+    df = pd.read_pickle((input_path / "data.pkl.gz").as_posix())
+    df["motif"] = df.cens.apply(compute_motif)
+
+    aff = compute_affinity(df)
+    np.save(output_path / "affinity", aff)
+    G = create_digraph(aff)
+    nx.write_weighted_edgelist(G, (output_path / "edgelist").as_posix())
+    motifs = get_reference_motif(df, G)
+    motifs.to_pickle(output_path / "motifs.pkl.gz")
+
+    profiles = []
+    for full in df.cens:
+        row_profiles = []
+        for motif in motifs:
+            mp, _ = simple_fast(full, motif, 25)
+            row_profiles.append(mp)
+        profiles.append(row_profiles)
+
+    computed = []
+    for row in profiles:
+        arr = np.array(row)
+        averaged = np.median(arr, axis=0)
+        med = np.median(arr)
+        computed.append(
+            dict(
+                profile=averaged,
+                median=med,
+                indices=get_transition_index(averaged < med, 12),
+            )
+        )
+    computed_df = pd.DataFrame(computed)
+    computed_df.to_json(output_path / "averaged_profiles.json", orient="records")
+
+    final = df.join(computed_df)
+    final["extracted"] = final.apply(
+        lambda x: extract_samples(x.cens, x.indices), axis=1
+    )
+    exploded = final.explode("extracted")
+    exploded["cens_slice"] = exploded.extracted.apply(lambda x: x[0])
+    exploded["index"] = exploded.extracted.apply(lambda x: x[1])
+    train = exploded[["name", "parent", "cens_slice", "index"]]
+    train.to_pickle(output_path / "train.pkl.gz")
+
+
+@click.command()
+@click.option("--parallelism", type=int, default=12)
+def main(parallelism):
+    rel_root = ROOT / "data/cens/train_short_audio"
+    src = rel_root
+    dst = Path("data/extract_training")
+    dst.mkdir(parents=True, exist_ok=True)
+
+    args = []
+    for dirpath, dirnames, filenames in os.walk(src):
+        if dirnames:
+            continue
+        rel_dir = Path(dirpath).relative_to(rel_root)
+        output_dir = dst / rel_dir
+        if output_dir.exists() and list(output_dir.glob("*")):
+            print(f"skipping {output_dir}, already exists")
+            continue
+        args += [(Path(dirpath), output_dir)]
+
+    with Pool(parallelism) as p:
+        for _ in tqdm.tqdm(p.istarmap(write, args), total=len(args)):
+            pass
+
+
+if __name__ == "__main__":
+    main()

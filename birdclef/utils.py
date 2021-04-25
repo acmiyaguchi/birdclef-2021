@@ -73,4 +73,4 @@ def aligned_slice_indices(n, indices, window):
                     slices.append((n - window, n))
                     break
 
-    return slices
+    return [x for x in slices if x[1] - x[0] == window]

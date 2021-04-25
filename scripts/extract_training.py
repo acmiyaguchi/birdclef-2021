@@ -111,6 +111,7 @@ def write(input_path, output_path):
         lambda x: extract_samples(x.cens, x.indices), axis=1
     )
     exploded = final.explode("extracted")
+    exploded = exploded[~exploded.extracted.isnull()]
     exploded["cens_slice"] = exploded.extracted.apply(lambda x: x[0])
     exploded["index"] = exploded.extracted.apply(lambda x: x[1])
     train = exploded[["name", "parent", "cens_slice", "index"]]
@@ -131,7 +132,7 @@ def main(parallelism):
             continue
         rel_dir = Path(dirpath).relative_to(rel_root)
         output_dir = dst / rel_dir
-        if output_dir.exists() and list(output_dir.glob("*")):
+        if output_dir.exists() and (output_dir / "train.pkl.gz").exists():
             print(f"skipping {output_dir}, already exists")
             continue
         args += [(Path(dirpath), output_dir)]

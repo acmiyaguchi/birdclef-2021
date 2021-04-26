@@ -16,12 +16,12 @@ from birdclef.utils import aligned_slice_indices, get_transition_index
 ROOT = Path(__file__).parent.parent
 
 
-def compute_motif(cens):
-    mp, pi = simple_fast(cens, cens, 50)
+def compute_motif(cens, window=50):
+    mp, pi = simple_fast(cens, cens, window)
     return mp.argmin()
 
 
-def compute_affinity(df, sample=100):
+def compute_affinity(df, window=50, sample=100):
     n = df.shape[0]
     aff = np.zeros((n, n))
 
@@ -35,9 +35,9 @@ def compute_affinity(df, sample=100):
         indices = np.random.choice(np.arange(n), sample, replace=False)
     for off, i in enumerate(indices):
         row = df.iloc[i]
-        motif = row.cens[:, row.motif : row.motif + 50]
+        motif = row.cens[:, row.motif : row.motif + window]
         for j in indices[off:]:
-            mp, _ = simple_fast(df.iloc[j].cens, motif, 25)
+            mp, _ = simple_fast(df.iloc[j].cens, motif, window // 2)
             # i wish i could keep each of the matrix profiles...
             aff[i][j] = mp.min()
             aff[j][i] = mp.min()
@@ -56,11 +56,11 @@ def create_digraph(affinity):
     return nx.from_numpy_matrix(normed.filled(0), create_using=nx.DiGraph)
 
 
-def get_reference_motif(df, G, k=5):
+def get_reference_motif(df, G, k=5, window=20):
     pr = nx.pagerank(G)
     ranked = sorted([(score, idx) for idx, score in pr.items()])
     best = [idx for _, idx in ranked[-k:]]
-    return df.iloc[best].apply(lambda r: r.cens[:, r.motif : r.motif + 50], axis=1)
+    return df.iloc[best].apply(lambda r: r.cens[:, r.motif : r.motif + window], axis=1)
 
 
 def extract_samples(cens, indices, window=50):

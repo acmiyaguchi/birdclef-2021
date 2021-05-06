@@ -118,7 +118,7 @@ def main():
     y = tx_df.y.values
 
     X_train, X_test, y_train, y_test = train_test_split(X, y)
-    for _ in range(3):
+    for _ in range(4):
         _X, _y = mixup(tx_df)
         X_train = np.append(X_train, _X, axis=0)
         y_train = np.append(y_train, _y)

@@ -13,3 +13,4 @@ tables
 ipywidgets
 scipy
 lightgbm
+pyspark

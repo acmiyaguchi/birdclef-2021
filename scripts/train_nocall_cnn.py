@@ -134,12 +134,12 @@ def main():
     n = X_train.shape[0]
     with Pool(10) as p:
         conv = list(tqdm(p.imap(convert, X_train), total=n))
-    X_train = np.array(conv).reshape(n, -1)
+    X_train = np.array(conv).reshape(n, -1)[:, : 36 * 4 * 5]
 
     n = X_test.shape[0]
     with Pool(10) as p:
         conv = list(tqdm(p.imap(convert, X_test), total=n))
-    X_test = np.array(conv).reshape(n, -1)
+    X_test = np.array(conv).reshape(n, -1)[:, : 36 * 4 * 5]
 
     train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
     test_dataset = tf.data.Dataset.from_tensor_slices((X_test, y_test))

@@ -27,7 +27,7 @@ from birdclef.utils import cens_per_sec
 
 
 def slice_seconds(data, sample_rate, seconds=5, pad_seconds=0):
-    # return 2d array of the original data
+# return 2d array of the original data
     n = len(data)
     k = sample_rate * seconds
     pad = sample_rate * pad_seconds

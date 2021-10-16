@@ -14,3 +14,4 @@ ipywidgets
 scipy
 lightgbm
 pyspark
+tensorflow-io

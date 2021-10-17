@@ -15,3 +15,5 @@ scipy
 lightgbm
 pyspark
 tensorflow-io
+-e file:./simple
+-e file:./

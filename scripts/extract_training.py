@@ -1,5 +1,4 @@
 import os
-from birdclef import istarmap
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -11,6 +10,7 @@ import tqdm
 from scipy.stats import median_abs_deviation
 from simple_mp.simple import simple_fast
 
+from birdclef import istarmap
 from birdclef.utils import aligned_slice_indices, get_transition_index
 
 ROOT = Path(__file__).parent.parent

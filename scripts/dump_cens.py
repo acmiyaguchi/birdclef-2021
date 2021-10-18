@@ -1,5 +1,4 @@
 import os
-from birdclef import istarmap
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -8,6 +7,7 @@ import librosa
 import pandas as pd
 import tqdm
 
+from birdclef import istarmap
 from birdclef.utils import cens_per_sec
 
 ROOT = Path(__file__).parent.parent

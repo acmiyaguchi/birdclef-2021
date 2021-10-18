@@ -1,7 +1,7 @@
 """Find the motif pair for each training audio clip in a dataset."""
 import json
-from pathlib import Path
 from multiprocessing import Pool
+from pathlib import Path
 
 import click
 import IPython.display as ipd
@@ -10,6 +10,7 @@ import numpy as np
 import soundfile as sf
 import tqdm
 from simple_mp.simple import simple_fast
+
 from birdclef.utils import cens_per_sec, compute_offset
 
 ROOT = Path(__file__).parent.parent

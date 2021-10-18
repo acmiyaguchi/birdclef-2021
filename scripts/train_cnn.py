@@ -1,12 +1,13 @@
+import datetime
+from pathlib import Path
+
+import numpy as np
 import pandas as pd
+import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
-import numpy as np
-import tensorflow as tf
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Softmax, Flatten, Dense
-from pathlib import Path
-import datetime
+from tensorflow.keras.layers import Conv2D, Dense, Flatten, MaxPooling2D, Softmax
 
 
 def reshape_square(arr, k=8):
